@@ -41,6 +41,7 @@ class PersonFollower(Node):
         ranges = input_msg.ranges
         persona_detectada = []
         distancia_detectada = []
+        rango_frente = (int(it_angle*3//8), int(it_angle*6//8))
         for i in range (int(it_angle*2//8), int(it_angle*7//8)):
             if ranges[i] != float('inf'):
                 persona_detectada.append(i*angle_increment)
