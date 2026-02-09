@@ -17,19 +17,19 @@ class PersonFollower(Node):
         self.debug_scan_pub = self.create_publisher(
             LaserScan,
             '/scan_front',
-            qos_policy
+            10
         )
 
         qos_policy = rclpy.qos.QoSProfile(reliability=rclpy.qos.ReliabilityPolicy.BEST_EFFORT, history=rclpy.qos.HistoryPolicy.KEEP_LAST, depth=1)
         self.sub = self.create_subscription(
             LaserScan,
-            '/scan',
+            '/scan_filtered',
             self.listener_callback,
-            qos_profile=qos_policy)
+            10)
         self.dist_obj = 0.4
         self.stop_dist = 0.35
-        self.k_ang = 2.5
-        self.k_lin = 0.6 
+        self.k_ang = 1.0
+        self.k_lin = 0.6
 
         self.max_v = 0.15
         self.max_w = 0.8
@@ -40,8 +40,8 @@ class PersonFollower(Node):
 
         # i0 = 165
         # i1 = 195 
-        i0 = -15
-        i1 = 15
+        i0 = -75
+        i1 = 75
 
         # Debug scan 
         debug_msg = LaserScan()
@@ -59,7 +59,7 @@ class PersonFollower(Node):
             if ranges[i] < 2.0:
                 debug_ranges[i] = ranges[i]
         debug_msg.ranges = debug_ranges
-        self.debug_scan_pub.publish(debug_msg)
+        # self.debug_scan_pub.publish(debug_msg)
 
         best_r = None
         best_i = None
@@ -77,7 +77,7 @@ class PersonFollower(Node):
         wz = 0.0
 
         if best_r is not None:
-            angle = input_msg.angle_min + best_i * input_msg.angle_increment
+            angle = best_i * input_msg.angle_increment
             if best_r < self.stop_dist:
                 vx = 0.0
             else:
@@ -94,7 +94,7 @@ class PersonFollower(Node):
         cmd = Twist()
         cmd.linear.x = float(vx)
         cmd.angular.z = float(wz)
-        self.cmd_pub.publish(cmd)
+        # self.cmd_pub.publish(cmd)
 
 def main(args=None):
     rclpy.init(args=args)
