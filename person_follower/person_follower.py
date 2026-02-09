@@ -13,22 +13,35 @@ class PersonFollower(Node):
     def __init__(self):
         super().__init__('person_follower')
         self.cmd_pub = self.create_publisher(Twist, '/cmd_vel', 10)
-        self.debug_scan_pub = self.create_publisher(LaserScan, '/scan_front', 10)
-        self.sub = self.create_subscription(LaserScan, '/scan', self.listener_callback, 10)
-        self.dist_obj = 0.9 
+        qos_policy = rclpy.qos.QoSProfile(reliability=rclpy.qos.ReliabilityPolicy.BEST_EFFORT, history=rclpy.qos.HistoryPolicy.KEEP_LAST, depth=1)
+        self.debug_scan_pub = self.create_publisher(
+            LaserScan,
+            '/scan_front',
+            qos_policy
+        )
+
+        qos_policy = rclpy.qos.QoSProfile(reliability=rclpy.qos.ReliabilityPolicy.BEST_EFFORT, history=rclpy.qos.HistoryPolicy.KEEP_LAST, depth=1)
+        self.sub = self.create_subscription(
+            LaserScan,
+            '/scan',
+            self.listener_callback,
+            qos_profile=qos_policy)
+        self.dist_obj = 0.4
         self.stop_dist = 0.35
         self.k_ang = 2.5
         self.k_lin = 0.6 
 
-        self.max_v = 0.22
-        self.max_w = 1.0
+        self.max_v = 0.15
+        self.max_w = 0.8
 
     def listener_callback(self, input_msg: LaserScan):
         ranges = list(input_msg.ranges)
         n = len(ranges)
 
-        i0 = 165
-        i1 = 195
+        # i0 = 165
+        # i1 = 195 
+        i0 = -15
+        i1 = 15
 
         # Debug scan 
         debug_msg = LaserScan()
@@ -43,21 +56,23 @@ class PersonFollower(Node):
 
         debug_ranges = [float('inf')] * n
         for i in range(i0, i1):
-            debug_ranges[i] = ranges[i]
+            if ranges[i] < 2.0:
+                debug_ranges[i] = ranges[i]
         debug_msg.ranges = debug_ranges
         self.debug_scan_pub.publish(debug_msg)
 
         best_r = None
         best_i = None
         for i in range(i0, i1):
-            r = ranges[i]
-            if r is None or (not math.isfinite(r)):
-                continue
-            if r < input_msg.range_min or r > input_msg.range_max:
-                continue
-            if best_r is None or r < best_r:
-                best_r = r
-                best_i = i
+            if ranges[i] < 2.0:
+                r = ranges[i]
+                if r is None or (not math.isfinite(r)):
+                    continue
+                if r < input_msg.range_min or r > input_msg.range_max:
+                    continue
+                if best_r is None or r < best_r:
+                    best_r = r
+                    best_i = i
         vx = 0.0
         wz = 0.0
 
@@ -75,7 +90,7 @@ class PersonFollower(Node):
         else:
             vx = 0.0
             wz = 0.0
-
+        print(f"publicando vx:{vx} y vz:{wz}")
         cmd = Twist()
         cmd.linear.x = float(vx)
         cmd.angular.z = float(wz)
@@ -91,3 +106,4 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
+
