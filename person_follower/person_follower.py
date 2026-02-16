@@ -3,6 +3,8 @@ from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
 import math
+from rclpy.qos import qos_profile_sensor_data
+
 
 
 def clamp(x, lo, hi):
@@ -19,16 +21,17 @@ class PersonFollower(Node):
             '/scan_front',
             10
         )
+        
 
         qos_policy = rclpy.qos.QoSProfile(reliability=rclpy.qos.ReliabilityPolicy.BEST_EFFORT, history=rclpy.qos.HistoryPolicy.KEEP_LAST, depth=1)
         self.sub = self.create_subscription(
             LaserScan,
-            '/scan_filtered',
+            '/scan',
             self.listener_callback,
-            10)
+            qos_profile_sensor_data)
         self.dist_obj = 0.4
         self.stop_dist = 0.35
-        self.k_ang = 1.0
+        self.k_ang = 2.0
         self.k_lin = 0.6
 
         self.max_v = 0.15
@@ -94,7 +97,7 @@ class PersonFollower(Node):
         cmd = Twist()
         cmd.linear.x = float(vx)
         cmd.angular.z = float(wz)
-        # self.cmd_pub.publish(cmd)
+        self.cmd_pub.publish(cmd)
 
 def main(args=None):
     rclpy.init(args=args)
