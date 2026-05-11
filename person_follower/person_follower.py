@@ -14,7 +14,7 @@ def clamp(x, lo, hi):
 class PersonFollower(Node):
     def __init__(self):
         super().__init__('person_follower')
-        self.cmd_pub = self.create_publisher(Twist, '/cmd_vel', 10)
+        self.cmd_pub = self.create_publisher(Twist, '/cmd_vel_scan', 10)
         qos_policy = rclpy.qos.QoSProfile(reliability=rclpy.qos.ReliabilityPolicy.BEST_EFFORT, history=rclpy.qos.HistoryPolicy.KEEP_LAST, depth=1)
         self.debug_scan_pub = self.create_publisher(
             LaserScan,
