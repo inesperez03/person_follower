@@ -22,13 +22,13 @@ class FollowID1(Node):
 
         self.target_distance = 0.85
         self.k_v = 0.3
-        self.k_w = 0.5
+        self.k_w = 0.65
 
     def cb(self, msg):
         cmd = Twist()
 
         for det in msg.detections:
-            if det.id == '541':
+            if det.id == '324':
                 print("a")
                 x = det.bbox3d.center.position.x
                 y = det.bbox3d.center.position.y
